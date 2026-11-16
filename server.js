@@ -25,10 +25,14 @@ app.get('/api/download', (req, res) => {
   const downloadName = isAudio ? 'audio.mp3' : `video_${quality}.mp4`;
 
   // Argumen yt-dlp dengan client android/ios untuk meminimalisir blokir bot IP server
-  const baseArgs = [
-    '--no-playlist',
-    '--extractor-args', 'youtube:player_client=android,web',
-  ];
+ const cookiesPath = fs.existsSync('/etc/secrets/cookies.txt')
+  ? '/etc/secrets/cookies.txt'
+  : path.join(__dirname, 'cookies.txt');
+
+const baseArgs = [
+  '--no-playlist',
+  ...(fs.existsSync(cookiesPath) ? ['--cookies', cookiesPath] : []),
+];
 
   const args = isAudio
     ? [...baseArgs, '-x', '--audio-format', 'mp3', '-o', tempFile, url]
