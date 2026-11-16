@@ -24,15 +24,28 @@ app.get('/api/download', (req, res) => {
   const tempFile = path.join(os.tmpdir(), `${tempId}.${ext}`);
   const downloadName = isAudio ? 'audio.mp3' : `video_${quality}.mp4`;
 
-  // Argumen yt-dlp dengan client android/ios untuk meminimalisir blokir bot IP server
- const cookiesPath = fs.existsSync('/etc/secrets/cookies.txt')
-  ? '/etc/secrets/cookies.txt'
-  : path.join(__dirname, 'cookies.txt');
+  // Salin cookies dari Render Secret Files ke /tmp agar yt-dlp bisa membacanya/menulisnya
+  const secretCookies = '/etc/secrets/cookies.txt';
+  const localCookies = path.join(__dirname, 'cookies.txt');
+  const tempCookies = path.join(os.tmpdir(), `cookies_${tempId}.txt`);
+  let hasCookies = false;
 
-const baseArgs = [
-  '--no-playlist',
-  ...(fs.existsSync(cookiesPath) ? ['--cookies', cookiesPath] : []),
-];
+  if (fs.existsSync(secretCookies)) {
+    fs.copyFileSync(secretCookies, tempCookies);
+    hasCookies = true;
+  } else if (fs.existsSync(localCookies)) {
+    fs.copyFileSync(localCookies, tempCookies);
+    hasCookies = true;
+  }
+
+  const baseArgs = [
+    '--no-playlist',
+    '--js-runtimes', 'node',
+    '--force-ipv4',
+    ...(hasCookies
+      ? ['--cookies', tempCookies]
+      : ['--extractor-args', 'youtube:player_client=tv_embedded,mweb']),
+  ];
 
   const args = isAudio
     ? [...baseArgs, '-x', '--audio-format', 'mp3', '-o', tempFile, url]
@@ -52,28 +65,32 @@ const baseArgs = [
     console.error(data.toString());
   });
 
+  const cleanup = () => {
+    if (fs.existsSync(tempFile)) {
+      try { fs.unlinkSync(tempFile); } catch (_) {}
+    }
+    if (fs.existsSync(tempCookies)) {
+      try { fs.unlinkSync(tempCookies); } catch (_) {}
+    }
+  };
+
   ytdlp.on('close', (code) => {
     if (code !== 0 || !fs.existsSync(tempFile)) {
       console.error('Gagal mengunduh:', errorLog);
+      cleanup();
       return res.status(500).send(
-        'Gagal memproses video dari YouTube. Server cloud mungkin dibatasi oleh YouTube atau video diproteksi.'
+        'Gagal memproses video. Tambahkan Secret File cookies.txt di Render untuk melewati batas HTTP 429 YouTube.'
       );
     }
 
-    // Kirim file MP4/MP3 yang sudah utuh ke browser, lalu hapus dari /tmp
     res.download(tempFile, downloadName, (err) => {
-      if (fs.existsSync(tempFile)) {
-        fs.unlinkSync(tempFile);
-      }
+      cleanup();
       if (err) console.error('Error saat mengirim file:', err);
     });
   });
 
   req.on('close', () => {
     if (!ytdlp.killed) ytdlp.kill();
-    if (fs.existsSync(tempFile)) {
-      try { fs.unlinkSync(tempFile); } catch (_) {}
-    }
   });
 });
 
