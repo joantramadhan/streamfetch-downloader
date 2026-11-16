@@ -1,8 +1,9 @@
-// Simpan sebagai server.js (letakkan index.html di folder /public)
 const express = require('express');
 const cors = require('cors');
 const { spawn } = require('child_process');
 const path = require('path');
+const fs = require('fs');
+const os = require('os');
 
 const app = express();
 app.use(cors());
@@ -18,19 +19,58 @@ app.get('/api/download', (req, res) => {
 
   const isAudio = quality === 'mp3';
   const height = quality.replace('p', '');
-  const filename = isAudio ? 'audio.mp3' : `video_${quality}.mp4`;
+  const ext = isAudio ? 'mp3' : 'mp4';
+  const tempId = `streamfetch_${Date.now()}_${Math.random().toString(36).substring(2, 7)}`;
+  const tempFile = path.join(os.tmpdir(), `${tempId}.${ext}`);
+  const downloadName = isAudio ? 'audio.mp3' : `video_${quality}.mp4`;
 
-  res.setHeader('Content-Disposition', `attachment; filename="${filename}"`);
-  res.setHeader('Content-Type', isAudio ? 'audio/mpeg' : 'video/mp4');
+  // Argumen yt-dlp dengan client android/ios untuk meminimalisir blokir bot IP server
+  const baseArgs = [
+    '--no-playlist',
+    '--extractor-args', 'youtube:player_client=android,web',
+  ];
 
   const args = isAudio
-    ? ['-x', '--audio-format', 'mp3', '-o', '-', url]
-    : ['-f', `bestvideo[height<=${height}][ext=mp4]+bestaudio[ext=m4a]/best[height<=${height}][ext=mp4]/best`, '--merge-output-format', 'mp4', '-o', '-', url];
+    ? [...baseArgs, '-x', '--audio-format', 'mp3', '-o', tempFile, url]
+    : [
+        ...baseArgs,
+        '-f', `bestvideo[height<=${height}][ext=mp4]+bestaudio[ext=m4a]/best[height<=${height}][ext=mp4]/best`,
+        '--merge-output-format', 'mp4',
+        '-o', tempFile,
+        url
+      ];
 
   const ytdlp = spawn('yt-dlp', args);
-  ytdlp.stdout.pipe(res);
-  ytdlp.stderr.on('data', (d) => console.error(d.toString()));
-  req.on('close', () => ytdlp.kill());
+  let errorLog = '';
+
+  ytdlp.stderr.on('data', (data) => {
+    errorLog += data.toString();
+    console.error(data.toString());
+  });
+
+  ytdlp.on('close', (code) => {
+    if (code !== 0 || !fs.existsSync(tempFile)) {
+      console.error('Gagal mengunduh:', errorLog);
+      return res.status(500).send(
+        'Gagal memproses video dari YouTube. Server cloud mungkin dibatasi oleh YouTube atau video diproteksi.'
+      );
+    }
+
+    // Kirim file MP4/MP3 yang sudah utuh ke browser, lalu hapus dari /tmp
+    res.download(tempFile, downloadName, (err) => {
+      if (fs.existsSync(tempFile)) {
+        fs.unlinkSync(tempFile);
+      }
+      if (err) console.error('Error saat mengirim file:', err);
+    });
+  });
+
+  req.on('close', () => {
+    if (!ytdlp.killed) ytdlp.kill();
+    if (fs.existsSync(tempFile)) {
+      try { fs.unlinkSync(tempFile); } catch (_) {}
+    }
+  });
 });
 
 const PORT = process.env.PORT || 3000;
