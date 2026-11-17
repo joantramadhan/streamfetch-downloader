@@ -43,10 +43,10 @@ app.get('/api/download', (req, res) => {
 
 const baseArgs = [
     '--no-playlist',
-    '--js-runtimes', 'node',
-    '--remote-components', 'ejs:github',
     '--force-ipv4',
     '--geo-bypass',
+    // Gunakan client tv & mweb agar tidak terkena HTTP 429 di halaman web utama
+    '--extractor-args', 'youtube:player_client=tv,mweb,web_creator;player_skip=webpage',
     ...(hasCookies ? ['--cookies', tempCookies] : [])
   ];
   // Gunakan selector fleksibel agar jika stream mp4 dibatasi, yt-dlp mengambil webm lalu digabung ke mp4 oleh ffmpeg
