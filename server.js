@@ -45,18 +45,20 @@ const baseArgs = [
     '--no-playlist',
     '--force-ipv4',
     '--geo-bypass',
-    // Gunakan client tv & mweb agar tidak terkena HTTP 429 di halaman web utama
-    '--extractor-args', 'youtube:player_client=tv,mweb,web_creator;player_skip=webpage',
+    // Gunakan web_creator & tv dengan Deno agar daftar format 1080p/720p DASH terbuka penuh
+    '--extractor-args', 'youtube:player_client=web_creator,tv,default',
     ...(hasCookies ? ['--cookies', tempCookies] : [])
   ];
-  // Gunakan selector fleksibel agar jika stream mp4 dibatasi, yt-dlp mengambil webm lalu digabung ke mp4 oleh ffmpeg
-  const formatSelector = `bestvideo[height<=${height}]+bestaudio/best[height<=${height}]/best`;
+
+  // Prioritaskan stream video H.264 (avc1) + audio M4A agar kualitas tajam dan langsung kompatibel dengan MP4
+  const formatSelector = `bestvideo[height<=${height}][vcodec^=avc]+bestaudio[acodec^=mp4a]/bestvideo[height<=${height}]+bestaudio/best[height<=${height}]/best`;
 
   const args = isAudio
-    ? [...baseArgs, '-x', '--audio-format', 'mp3', '-o', tempFile, url]
+    ? [...baseArgs, '-x', '--audio-format', 'mp3', '--audio-quality', '0', '-o', tempFile, url]
     : [
         ...baseArgs,
         '-f', formatSelector,
+        '-S', `res:${height},fps,vcodec:h264,acodec:m4a`,
         '--merge-output-format', 'mp4',
         '-o', tempFile,
         url
