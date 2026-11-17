@@ -41,14 +41,14 @@ app.get('/api/download', (req, res) => {
     console.warn('PERINGATAN: File cookies.txt tidak ditemukan di /etc/secrets maupun folder root!');
   }
 
-  const baseArgs = [
+const baseArgs = [
     '--no-playlist',
     '--js-runtimes', 'node',
+    '--remote-components', 'ejs:github',
     '--force-ipv4',
     '--geo-bypass',
     ...(hasCookies ? ['--cookies', tempCookies] : [])
   ];
-
   // Gunakan selector fleksibel agar jika stream mp4 dibatasi, yt-dlp mengambil webm lalu digabung ke mp4 oleh ffmpeg
   const formatSelector = `bestvideo[height<=${height}]+bestaudio/best[height<=${height}]/best`;
 
