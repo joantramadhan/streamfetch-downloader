@@ -24,34 +24,39 @@ app.get('/api/download', (req, res) => {
   const tempFile = path.join(os.tmpdir(), `${tempId}.${ext}`);
   const downloadName = isAudio ? 'audio.mp3' : `video_${quality}.mp4`;
 
-  // Salin cookies dari Render Secret Files ke /tmp agar yt-dlp bisa membacanya/menulisnya
-  const secretCookies = '/etc/secrets/cookies.txt';
-  const localCookies = path.join(__dirname, 'cookies.txt');
+  // Render menyimpan Secret Files di /etc/secrets/<nama_file> atau di root /app/<nama_file>
+  const possibleCookiePaths = [
+    '/etc/secrets/cookies.txt',
+    path.join(__dirname, 'cookies.txt')
+  ];
+  const foundCookiePath = possibleCookiePaths.find((p) => fs.existsSync(p));
   const tempCookies = path.join(os.tmpdir(), `cookies_${tempId}.txt`);
   let hasCookies = false;
 
-  if (fs.existsSync(secretCookies)) {
-    fs.copyFileSync(secretCookies, tempCookies);
+  if (foundCookiePath) {
+    fs.copyFileSync(foundCookiePath, tempCookies);
     hasCookies = true;
-  } else if (fs.existsSync(localCookies)) {
-    fs.copyFileSync(localCookies, tempCookies);
-    hasCookies = true;
+    console.log(`Menggunakan cookies dari: ${foundCookiePath}`);
+  } else {
+    console.warn('PERINGATAN: File cookies.txt tidak ditemukan di /etc/secrets maupun folder root!');
   }
 
   const baseArgs = [
     '--no-playlist',
     '--js-runtimes', 'node',
     '--force-ipv4',
-    ...(hasCookies
-      ? ['--cookies', tempCookies]
-      : ['--extractor-args', 'youtube:player_client=tv_embedded,mweb']),
+    '--geo-bypass',
+    ...(hasCookies ? ['--cookies', tempCookies] : [])
   ];
+
+  // Gunakan selector fleksibel agar jika stream mp4 dibatasi, yt-dlp mengambil webm lalu digabung ke mp4 oleh ffmpeg
+  const formatSelector = `bestvideo[height<=${height}]+bestaudio/best[height<=${height}]/best`;
 
   const args = isAudio
     ? [...baseArgs, '-x', '--audio-format', 'mp3', '-o', tempFile, url]
     : [
         ...baseArgs,
-        '-f', `bestvideo[height<=${height}][ext=mp4]+bestaudio[ext=m4a]/best[height<=${height}][ext=mp4]/best`,
+        '-f', formatSelector,
         '--merge-output-format', 'mp4',
         '-o', tempFile,
         url
@@ -78,9 +83,7 @@ app.get('/api/download', (req, res) => {
     if (code !== 0 || !fs.existsSync(tempFile)) {
       console.error('Gagal mengunduh:', errorLog);
       cleanup();
-      return res.status(500).send(
-        'Gagal memproses video. Tambahkan Secret File cookies.txt di Render untuk melewati batas HTTP 429 YouTube.'
-      );
+      return res.status(500).send(`Gagal memproses video:\n${errorLog}`);
     }
 
     res.download(tempFile, downloadName, (err) => {
