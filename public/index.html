@@ -1,624 +1,380 @@
 <!DOCTYPE html>
-<html lang="id" class="dark">
+<html lang="id">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>StreamFetch — YouTube Media Downloader UI</title>
+  <title>Sayangku Gihan — Pengunduh Video & Klip Keluarga</title>
   <script src="https://cdn.tailwindcss.com"></script>
-  <link rel="preconnect" href="https://fonts.googleapis.com" />
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
-  <script>
-    tailwind.config = {
-      darkMode: 'class',
-      theme: {
-        extend: {
-          fontFamily: {
-            sans: ['Inter', 'sans-serif'],
-          },
-          colors: {
-            brand: {
-              500: '#ef4444',
-              600: '#dc2626',
-              700: '#b91c1c',
-            }
-          }
-        }
-      }
-    };
-  </script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@500;600;700;800;900&display=swap" rel="stylesheet">
+  <style>
+    body {
+      font-family: 'Nunito', sans-serif;
+      background-color: #FFFDF8;
+      background-image: radial-gradient(#FDE68A 1px, transparent 1px), radial-gradient(#BAE6FD 1px, #FFFDF8 1px);
+      background-size: 32px 32px;
+      background-position: 0 0, 16px 16px;
+      color: #1E293B;
+    }
+    .soft-card {
+      background: #FFFFFF;
+      border: 2px solid #F1F5F9;
+      box-shadow: 0 12px 32px -8px rgba(14, 116, 144, 0.08);
+    }
+    .btn-primary {
+      background: linear-gradient(135deg, #0EA5E9 0%, #0284C7 100%);
+      box-shadow: 0 6px 16px -4px rgba(2, 132, 199, 0.4);
+      transition: all 0.2s ease;
+    }
+    .btn-primary:hover:not(:disabled) {
+      transform: translateY(-2px);
+      box-shadow: 0 10px 20px -4px rgba(2, 132, 199, 0.5);
+    }
+  </style>
 </head>
-<body class="bg-slate-950 text-slate-100 font-sans min-h-screen flex flex-col antialiased selection:bg-red-500/30 selection:text-red-200">
+<body class="min-h-screen flex flex-col">
 
-  <!-- Top Navbar -->
-  <header class="border-b border-slate-800/80 bg-slate-900/60 backdrop-blur-md sticky top-0 z-30">
-    <div class="max-w-4xl mx-auto px-4 sm:px-6 h-16 flex items-center justify-between">
-      <div class="flex items-center gap-2.5">
-        <div class="w-9 h-9 rounded-xl bg-gradient-to-br from-red-500 to-rose-600 flex items-center justify-center shadow-lg shadow-red-500/20">
-          <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" stroke-width="2.4" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" d="M4 16v2a2 2 0 002 2h12a2 2 0 002-2v-2M7 10l5 5 5-5M12 15V3" />
+  <!-- Navbar Ramah & Cerah + Indikator Cookies YT -->
+  <header class="bg-white/90 backdrop-blur-md border-b-2 border-amber-100 sticky top-0 z-30">
+    <div class="max-w-4xl mx-auto px-4 py-3.5 flex flex-wrap items-center justify-between gap-2">
+      <div class="flex items-center gap-3">
+        <div class="w-11 h-11 rounded-2xl bg-gradient-to-br from-amber-400 to-orange-500 flex items-center justify-center text-white shadow-md">
+          <svg class="w-6 h-6" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z" />
+            <path stroke-linecap="round" stroke-linejoin="round" d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
           </svg>
         </div>
         <div>
-          <span class="font-extrabold text-lg tracking-tight text-white">Stream<span class="text-red-500">Fetch</span></span>
-          <span class="hidden sm:inline-block ml-2 text-[11px] font-medium px-2 py-0.5 rounded-full bg-slate-800 text-slate-400 border border-slate-700/60">MP4 &amp; Audio</span>
+          <h1 class="text-xl font-black tracking-tight text-slate-800 leading-none">Sayangku Gihan</h1>
+          <p class="text-xs font-bold text-sky-600 mt-1">Media & Klip Toolkit • Tahap 1</p>
         </div>
       </div>
 
       <div class="flex items-center gap-2">
-        <button id="toggleGuideBtn" class="text-xs sm:text-sm font-medium px-3 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 transition flex items-center gap-1.5 border border-slate-700/60">
-          <svg class="w-4 h-4 text-amber-400" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-          </svg>
-          <span>Setup Backend</span>
-        </button>
+        <span id="cookieBadge" class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-bold bg-slate-100 text-slate-600 border border-slate-200">
+          Mengecek Secret YT...
+        </span>
       </div>
     </div>
   </header>
 
-  <!-- Main Content -->
-  <main class="flex-1 max-w-4xl w-full mx-auto px-4 sm:px-6 py-8 sm:py-12">
+  <!-- Konten Utama -->
+  <main class="flex-1 max-w-4xl w-full mx-auto px-4 py-8 space-y-6">
 
-    <!-- Hero Section -->
-    <div class="text-center max-w-2xl mx-auto mb-8">
-      <h1 class="text-3xl sm:text-4xl font-extrabold tracking-tight text-white mb-3">
-        Unduh Video &amp; Audio <span class="text-transparent bg-clip-text bg-gradient-to-r from-red-400 to-rose-500">Resolusi Tinggi</span>
-      </h1>
-      <p class="text-sm sm:text-base text-slate-400 leading-relaxed">
-        Tempelkan tautan video YouTube di bawah untuk memeriksa metadata, thumbnail, dan memilih format MP4 atau MP3 yang siap diproses.
+    <!-- Hero Banner -->
+    <div class="text-center space-y-2 py-2">
+      <div class="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-amber-100/80 text-amber-800 text-xs font-extrabold">
+        <span>✨ Aman, Praktis & Ramah Keluarga</span>
+      </div>
+      <h2 class="text-3xl sm:text-4xl font-black text-slate-800 tracking-tight">
+        Simpan Video & Potong Klip Favorit
+      </h2>
+      <p class="text-slate-500 font-semibold max-w-xl mx-auto text-sm sm:text-base">
+        Mendukung tautan <span class="text-red-600 font-bold">YouTube</span>, <span class="text-slate-800 font-bold">TikTok</span>, dan <span class="text-pink-600 font-bold">Instagram Reels</span>. Pilih kualitas jernih atau potong bagian tertentu saja.
       </p>
     </div>
 
-    <!-- URL Input Card -->
-    <div class="bg-slate-900/90 border border-slate-800 rounded-2xl p-4 sm:p-6 shadow-2xl shadow-black/50 mb-6">
-      <form id="fetchForm" class="flex flex-col sm:flex-row gap-3">
-        <div class="relative flex-1">
-          <div class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none">
-            <svg class="w-5 h-5 text-slate-500" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1" />
-            </svg>
-          </div>
-          <input
-            type="url"
-            id="urlInput"
-            placeholder="https://www.youtube.com/watch?v=..."
-            required
-            class="w-full pl-10 pr-20 py-3.5 bg-slate-950 border border-slate-700/80 rounded-xl text-sm sm:text-base text-white placeholder-slate-500 focus:outline-none focus:border-red-500 focus:ring-2 focus:ring-red-500/20 transition"
-          />
-          <button
-            type="button"
-            id="pasteBtn"
-            class="absolute right-2 top-1/2 -translate-y-1/2 text-xs font-semibold px-2.5 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 transition"
-          >
-            Tempel
-          </button>
-        </div>
-        <button
-          type="submit"
-          id="analyzeBtn"
-          class="px-6 py-3.5 rounded-xl bg-gradient-to-r from-red-600 to-rose-600 hover:from-red-500 hover:to-rose-500 text-white font-bold text-sm sm:text-base shadow-lg shadow-red-600/25 transition flex items-center justify-center gap-2 shrink-0 cursor-pointer"
-        >
-          <span>Proses Link</span>
-          <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2.4" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" d="M14 5l7 7m0 0l-7 7m7-7H3" />
-          </svg>
-        </button>
-      </form>
-
-      <!-- Sample Quick Fill -->
-      <div class="mt-3 flex flex-wrap items-center justify-between gap-2 text-xs text-slate-500">
-        <div class="flex items-center gap-2">
-          <span>Contoh cepat:</span>
-          <button type="button" id="sampleBtn" class="text-slate-400 hover:text-red-400 underline underline-offset-2 transition">
-            Gunakan URL Demo
-          </button>
-        </div>
-        <div class="flex items-center gap-1.5">
-          <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
-          <span>oEmbed Metadata API Aktif</span>
-        </div>
-      </div>
-    </div>
-
-    <!-- Custom Alert / Notification Box -->
-    <div id="alertBox" class="hidden mb-6 rounded-xl p-4 border text-sm flex items-start gap-3 transition-all"></div>
-
-    <!-- Loading Skeleton -->
-    <div id="loadingCard" class="hidden bg-slate-900 border border-slate-800 rounded-2xl p-6 mb-6 animate-pulse">
-      <div class="flex flex-col md:flex-row gap-6">
-        <div class="w-full md:w-72 aspect-video bg-slate-800 rounded-xl"></div>
-        <div class="flex-1 space-y-3 py-1">
-          <div class="h-5 bg-slate-800 rounded w-3/4"></div>
-          <div class="h-4 bg-slate-800 rounded w-1/3"></div>
-          <div class="pt-4 space-y-2">
-            <div class="h-10 bg-slate-800 rounded-xl"></div>
-            <div class="h-10 bg-slate-800 rounded-xl"></div>
-          </div>
-        </div>
-      </div>
-    </div>
-
-    <!-- Result & Format Selection Card -->
-    <div id="resultCard" class="hidden bg-slate-900 border border-slate-800 rounded-2xl overflow-hidden shadow-2xl mb-8 transition-all">
-      <div class="p-5 sm:p-6 flex flex-col md:flex-row gap-6 border-b border-slate-800/80">
-        <!-- Thumbnail Preview -->
-        <div class="relative w-full md:w-72 shrink-0 aspect-video rounded-xl overflow-hidden bg-slate-950 border border-slate-800 group">
-          <img
-            id="videoThumb"
-            src=""
-            alt="Video Thumbnail"
-            onerror="this.src='https://placehold.co/640x360/1e293b/94a3b8?text=Video+Preview'"
-            class="w-full h-full object-cover group-hover:scale-105 transition duration-300"
-          />
-          <span id="videoBadge" class="absolute bottom-2 right-2 px-2 py-0.5 rounded-md bg-black/80 text-[11px] font-bold text-white backdrop-blur-sm">
-            HD
-          </span>
-        </div>
-
-        <!-- Video Info -->
-        <div class="flex-1 flex flex-col justify-between">
-          <div>
-            <div class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-red-500/10 border border-red-500/20 text-red-400 text-xs font-semibold mb-2">
-              <svg class="w-3.5 h-3.5" fill="currentColor" viewBox="0 0 24 24"><path d="M23.498 6.186a3.016 3.016 0 0 0-2.122-2.136C19.505 3.545 12 3.545 12 3.545s-7.505 0-9.377.505A3.017 3.017 0 0 0 .502 6.186C0 8.07 0 12 0 12s0 3.93.502 5.814a3.016 3.016 0 0 0 2.122 2.136c1.871.505 9.376.505 9.376.505s7.505 0 9.377-.505a3.015 3.015 0 0 0 2.122-2.136C24 15.93 24 12 24 12s0-3.93-.502-5.814zM9.545 15.568V8.432L15.818 12l-6.273 3.568z"/></svg>
-              <span>YouTube Metadata Terverifikasi</span>
-            </div>
-            <h2 id="videoTitle" class="text-lg sm:text-xl font-bold text-white leading-snug line-clamp-2 mb-1.5">
-              Judul Video
-            </h2>
-            <p id="videoAuthor" class="text-sm text-slate-400">
-              Channel Name
-            </p>
-          </div>
-
-          <div class="mt-4 pt-3 border-t border-slate-800/80 flex flex-wrap items-center justify-between gap-2 text-xs text-slate-400">
-            <span id="videoIdLabel" class="font-mono bg-slate-950 px-2.5 py-1 rounded-lg border border-slate-800">ID: -</span>
-            <a id="openOriginalLink" href="#" target="_blank" rel="noopener noreferrer" class="text-red-400 hover:text-red-300 font-medium flex items-center gap-1">
-              <span>Buka di YouTube</span>
-              <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"/></svg>
-            </a>
-          </div>
-        </div>
+    <!-- Card Input Utama -->
+    <section class="soft-card rounded-3xl p-5 sm:p-7 space-y-5">
+      <div class="flex flex-wrap items-center gap-2 text-xs font-extrabold">
+        <span class="px-3 py-1 rounded-xl bg-red-50 text-red-600 border border-red-100">▶ YouTube & Shorts</span>
+        <span class="px-3 py-1 rounded-xl bg-slate-100 text-slate-700 border border-slate-200">♪ TikTok Tanpa Watermark</span>
+        <span class="px-3 py-1 rounded-xl bg-pink-50 text-pink-600 border border-pink-100">◎ Instagram Reels</span>
       </div>
 
-      <!-- Format Download Table -->
-      <div class="p-5 sm:p-6 bg-slate-950/40">
-        <div class="flex items-center justify-between mb-3">
-          <h3 class="text-xs font-bold uppercase tracking-wider text-slate-400">Pilih Kualitas &amp; Format</h3>
-          <span class="text-[11px] text-slate-500">H.264 / AAC</span>
-        </div>
-
-        <div id="formatList" class="space-y-2.5">
-          <!-- Populated dynamically -->
-        </div>
-      </div>
-    </div>
-
-    <!-- Backend Integration Modal / Drawer Section -->
-    <div id="backendGuide" class="hidden bg-slate-900 border border-amber-500/30 rounded-2xl p-5 sm:p-6 mb-8 shadow-xl">
-      <div class="flex items-start justify-between gap-4 mb-4">
-        <div class="flex items-center gap-2.5">
-          <div class="w-8 h-8 rounded-lg bg-amber-500/10 border border-amber-500/30 flex items-center justify-center text-amber-400 font-bold">
-            ⚡
-          </div>
-          <div>
-            <h3 class="font-bold text-white text-base">Paket Siap Hosting (Server Node.js + yt-dlp)</h3>
-            <p class="text-xs text-slate-400">Otomatis terhubung jika file ini di-hosting di server yang sama, atau atur URL API eksternal.</p>
-          </div>
-        </div>
-        <button id="closeGuideBtn" class="text-slate-400 hover:text-white p-1">✕</button>
-      </div>
-
-      <div class="space-y-4 text-xs sm:text-sm text-slate-300 leading-relaxed">
-        <div>
-          <label class="block text-xs font-semibold text-slate-400 mb-1.5">URL Endpoint Backend (Kosongkan untuk otomatis pakai domain hosting saat ini <code class="text-emerald-400">/api/download</code>):</label>
-          <div class="flex flex-col sm:flex-row gap-2">
+      <!-- Form Input Link -->
+      <div class="space-y-3">
+        <label for="urlInput" class="block text-sm font-extrabold text-slate-700">Tempel Tautan Video di Sini</label>
+        <div class="flex flex-col sm:flex-row gap-3">
+          <div class="relative flex-1">
             <input
+              id="urlInput"
               type="text"
-              id="backendEndpointInput"
-              placeholder="/api/download atau https://api-kamu.railway.app/api/download"
-              class="flex-1 px-3.5 py-2 bg-slate-950 border border-slate-700 rounded-xl text-xs font-mono text-slate-200 focus:outline-none focus:border-amber-400"
+              placeholder="Contoh: https://www.youtube.com/watch?v=... atau link TikTok / IG"
+              class="w-full pl-4 pr-20 py-3.5 rounded-2xl bg-slate-50 border-2 border-slate-200 focus:border-sky-400 focus:bg-white focus:outline-none text-slate-800 font-semibold text-sm transition"
             />
-            <button id="saveEndpointBtn" class="px-4 py-2 rounded-xl bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold text-xs transition cursor-pointer">
-              Simpan Endpoint
+            <button
+              id="pasteBtn"
+              type="button"
+              class="absolute right-2.5 top-1/2 -translate-y-1/2 px-3 py-1.5 rounded-xl bg-sky-100 hover:bg-sky-200 text-sky-700 text-xs font-extrabold transition cursor-pointer"
+            >
+              Tempel
             </button>
           </div>
+          <button
+            id="checkBtn"
+            type="button"
+            class="btn-primary text-white font-extrabold px-6 py-3.5 rounded-2xl text-sm flex items-center justify-center gap-2 shrink-0 cursor-pointer"
+          >
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+            </svg>
+            <span>Cek Video</span>
+          </button>
         </div>
+      </div>
 
-        <!-- Ready-to-Deploy Server Code Tabs -->
-        <div class="border border-slate-800 rounded-xl overflow-hidden bg-slate-950">
-          <div class="flex items-center justify-between px-3.5 py-2 bg-slate-900/90 border-b border-slate-800">
-            <div class="flex gap-2">
-              <button type="button" id="tabServerBtn" class="px-2.5 py-1 rounded-lg bg-amber-500/20 text-amber-300 font-mono text-xs font-bold">server.js</button>
-              <button type="button" id="tabPkgBtn" class="px-2.5 py-1 rounded-lg text-slate-400 hover:text-white font-mono text-xs">package.json</button>
-              <button type="button" id="tabDockerBtn" class="px-2.5 py-1 rounded-lg text-slate-400 hover:text-white font-mono text-xs">Dockerfile</button>
+      <!-- Opsi Potong Klip (Clip / Trim) -->
+      <div class="bg-sky-50/70 border-2 border-sky-100 rounded-2xl p-4">
+        <div id="trimToggleHeader" class="flex items-center justify-between cursor-pointer">
+          <div class="flex items-center gap-2.5">
+            <span class="w-8 h-8 rounded-xl bg-sky-100 text-sky-600 flex items-center justify-center font-black">✂️</span>
+            <div>
+              <h3 class="text-sm font-extrabold text-slate-800">Potong Klip Tertentu (Opsional)</h3>
+              <p class="text-xs font-semibold text-slate-500">Hemat kuota & waktu dengan mengunduh bagian menit tertentu saja</p>
             </div>
-            <button type="button" id="copyCodeBtn" class="text-xs px-2.5 py-1 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-200 font-semibold transition cursor-pointer">
-              Salin Kode
-            </button>
           </div>
-          <pre id="deployCodeBlock" class="p-3.5 text-[11px] font-mono text-emerald-300 overflow-x-auto leading-relaxed"></pre>
+          <input id="enableTrim" type="checkbox" class="w-5 h-5 accent-sky-600 rounded cursor-pointer" />
+        </div>
+
+        <div id="trimFields" class="hidden grid-cols-1 sm:grid-cols-2 gap-3 mt-4 pt-3 border-t border-sky-200/60">
+          <div>
+            <label class="block text-xs font-extrabold text-slate-600 mb-1">Waktu Mulai (Menit:Detik)</label>
+            <input id="startTime" type="text" placeholder="00:15" class="w-full px-3.5 py-2.5 rounded-xl bg-white border-2 border-sky-200 text-sm font-bold text-slate-800 focus:outline-none focus:border-sky-500" />
+          </div>
+          <div>
+            <label class="block text-xs font-extrabold text-slate-600 mb-1">Waktu Selesai (Menit:Detik)</label>
+            <input id="endTime" type="text" placeholder="00:45" class="w-full px-3.5 py-2.5 rounded-xl bg-white border-2 border-sky-200 text-sm font-bold text-slate-800 focus:outline-none focus:border-sky-500" />
+          </div>
         </div>
       </div>
-    </div>
 
-    <!-- Recent History -->
-    <div id="historySection" class="hidden">
-      <div class="flex items-center justify-between mb-3">
-        <h3 class="text-sm font-bold text-slate-300">Riwayat Pemeriksaan Terakhir</h3>
-        <button id="clearHistoryBtn" class="text-xs text-slate-500 hover:text-red-400 transition">Hapus Semua</button>
+      <!-- Pesan Status / Error -->
+      <div id="statusBox" class="hidden rounded-2xl p-4 text-sm font-bold whitespace-pre-line"></div>
+
+      <!-- Hasil Pratinjau & Pilihan Kualitas -->
+      <div id="resultCard" class="hidden border-2 border-amber-200 bg-amber-50/40 rounded-3xl p-5 space-y-5">
+        <div class="flex flex-col sm:flex-row gap-4 items-center sm:items-start">
+          <img id="thumbImg" src="https://placehold.co/400x250/FEF3C7/D97706?text=Sayangku+Gihan" alt="Thumbnail Video" class="w-full sm:w-48 h-32 object-cover rounded-2xl bg-slate-200 border-2 border-white shadow-sm shrink-0" />
+          <div class="flex-1 text-center sm:text-left space-y-1.5">
+            <div class="flex flex-wrap justify-center sm:justify-start items-center gap-2">
+              <span id="platformBadge" class="px-2.5 py-0.5 rounded-lg bg-sky-100 text-sky-700 text-xs font-extrabold uppercase">YouTube</span>
+              <span id="durationBadge" class="px-2.5 py-0.5 rounded-lg bg-slate-200/70 text-slate-700 text-xs font-extrabold">Siap Unduh</span>
+            </div>
+            <h3 id="videoTitle" class="text-base sm:text-lg font-black text-slate-800 line-clamp-2">Judul Video</h3>
+            <p id="videoAuthor" class="text-xs font-bold text-slate-500">Nama Kreator</p>
+          </div>
+        </div>
+
+        <!-- Tombol Kualitas Unduhan -->
+        <div class="space-y-2.5">
+          <p class="text-xs font-extrabold text-slate-600 uppercase tracking-wider">Pilih Format & Kualitas Unduhan:</p>
+          <div class="grid grid-cols-2 sm:grid-cols-4 gap-2.5">
+            <button type="button" data-quality="1080p" class="dl-btn p-3 rounded-2xl bg-white hover:bg-sky-50 border-2 border-slate-200 hover:border-sky-400 text-left transition group cursor-pointer">
+              <div class="text-sm font-black text-slate-800 group-hover:text-sky-700">1080p HD</div>
+              <div class="text-[11px] font-bold text-slate-400">MP4 Tajam</div>
+            </button>
+            <button type="button" data-quality="720p" class="dl-btn p-3 rounded-2xl bg-white hover:bg-sky-50 border-2 border-sky-300 text-left transition group relative cursor-pointer">
+              <span class="absolute -top-2 right-2 px-2 py-0.5 bg-amber-400 text-amber-950 text-[10px] font-black rounded-full">Rekomendasi</span>
+              <div class="text-sm font-black text-sky-700">720p HD</div>
+              <div class="text-[11px] font-bold text-slate-400">MP4 Seimbang</div>
+            </button>
+            <button type="button" data-quality="480p" class="dl-btn p-3 rounded-2xl bg-white hover:bg-sky-50 border-2 border-slate-200 hover:border-sky-400 text-left transition group cursor-pointer">
+              <div class="text-sm font-black text-slate-800 group-hover:text-sky-700">480p SD</div>
+              <div class="text-[11px] font-bold text-slate-400">MP4 Hemat Kuota</div>
+            </button>
+            <button type="button" data-quality="mp3" class="dl-btn p-3 rounded-2xl bg-white hover:bg-orange-50 border-2 border-slate-200 hover:border-orange-400 text-left transition group cursor-pointer">
+              <div class="text-sm font-black text-orange-600">Audio MP3</div>
+              <div class="text-[11px] font-bold text-slate-400">Suara Jernih</div>
+            </button>
+          </div>
+        </div>
       </div>
-      <div id="historyList" class="grid grid-cols-1 sm:grid-cols-2 gap-3"></div>
-    </div>
+    </section>
+
+    <!-- Panduan Singkat -->
+    <section class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+      <div class="soft-card rounded-2xl p-4 space-y-1">
+        <div class="text-lg">1️⃣</div>
+        <h4 class="font-extrabold text-sm text-slate-800">Salin Tautan</h4>
+        <p class="text-xs font-semibold text-slate-500">Salin link dari YouTube, TikTok, atau Instagram Reels yang ingin disimpan.</p>
+      </div>
+      <div class="soft-card rounded-2xl p-4 space-y-1">
+        <div class="text-lg">2️⃣</div>
+        <h4 class="font-extrabold text-sm text-slate-800">Atur Klip & Kualitas</h4>
+        <p class="text-xs font-semibold text-slate-500">Gunakan fitur potong klip bila hanya butuh momen tertentu, lalu pilih resolusi.</p>
+      </div>
+      <div class="soft-card rounded-2xl p-4 space-y-1">
+        <div class="text-lg">3️⃣</div>
+        <h4 class="font-extrabold text-sm text-slate-800">Simpan ke Perangkat</h4>
+        <p class="text-xs font-semibold text-slate-500">Tunggu proses penggabungan di server selesai, file MP4/MP3 langsung terunduh.</p>
+      </div>
+    </section>
 
   </main>
 
-  <!-- Footer -->
-  <footer class="border-t border-slate-900 py-6 text-center text-xs text-slate-500 px-4">
-    Gunakan alat ini hanya untuk konten yang Anda miliki hak ciptanya atau berlisensi bebas (Creative Commons).
+  <footer class="text-center py-6 text-xs font-bold text-slate-400">
+    Dibuat dengan hangat untuk keluarga • Sayangku Gihan
   </footer>
 
+  <!-- Iframe tersembunyi untuk menangani unduhan tanpa membuat halaman berpindah ke layar putih jika error -->
+  <iframe id="hiddenDownloadFrame" name="hiddenDownloadFrame" class="hidden"></iframe>
+
   <script>
-    // State Management
-    let currentVideoData = null;
-    let backendEndpoint = localStorage.getItem('sf_backend_endpoint') || '';
-    let searchHistory = JSON.parse(localStorage.getItem('sf_history') || '[]');
-    let isBackendAlive = false;
-
-    // DOM References
-    const fetchForm = document.getElementById('fetchForm');
     const urlInput = document.getElementById('urlInput');
-    const pasteBtn = document.getElementById('pasteBtn');
-    const sampleBtn = document.getElementById('sampleBtn');
-    const alertBox = document.getElementById('alertBox');
-    const loadingCard = document.getElementById('loadingCard');
+    const statusBox = document.getElementById('statusBox');
     const resultCard = document.getElementById('resultCard');
-    const videoThumb = document.getElementById('videoThumb');
-    const videoTitle = document.getElementById('videoTitle');
-    const videoAuthor = document.getElementById('videoAuthor');
-    const videoIdLabel = document.getElementById('videoIdLabel');
-    const openOriginalLink = document.getElementById('openOriginalLink');
-    const formatList = document.getElementById('formatList');
-    const toggleGuideBtn = document.getElementById('toggleGuideBtn');
-    const closeGuideBtn = document.getElementById('closeGuideBtn');
-    const backendGuide = document.getElementById('backendGuide');
-    const backendEndpointInput = document.getElementById('backendEndpointInput');
-    const saveEndpointBtn = document.getElementById('saveEndpointBtn');
-    const historySection = document.getElementById('historySection');
-    const historyList = document.getElementById('historyList');
-    const clearHistoryBtn = document.getElementById('clearHistoryBtn');
-    const tabServerBtn = document.getElementById('tabServerBtn');
-    const tabPkgBtn = document.getElementById('tabPkgBtn');
-    const tabDockerBtn = document.getElementById('tabDockerBtn');
-    const copyCodeBtn = document.getElementById('copyCodeBtn');
-    const deployCodeBlock = document.getElementById('deployCodeBlock');
+    const checkBtn = document.getElementById('checkBtn');
+    const pasteBtn = document.getElementById('pasteBtn');
+    const enableTrim = document.getElementById('enableTrim');
+    const trimFields = document.getElementById('trimFields');
+    const trimToggleHeader = document.getElementById('trimToggleHeader');
+    const cookieBadge = document.getElementById('cookieBadge');
+    const hiddenFrame = document.getElementById('hiddenDownloadFrame');
 
-    backendEndpointInput.value = backendEndpoint;
-
-    // Ready-to-host code snippets
-    const DEPLOY_SNIPPETS = {
-      server: `// Simpan sebagai server.js (letakkan index.html di folder /public)
-const express = require('express');
-const cors = require('cors');
-const { spawn } = require('child_process');
-const path = require('path');
-
-const app = express();
-app.use(cors());
-app.use(express.static(path.join(__dirname, 'public')));
-
-app.get('/api/health', (req, res) => res.json({ status: 'ok' }));
-
-app.get('/api/download', (req, res) => {
-  const { url, quality = '720p' } = req.query;
-  if (!url || !/^https?:\\/\\/(www\\.)?(youtube\\.com|youtu\\.be)\\//.test(url)) {
-    return res.status(400).send('URL YouTube tidak valid');
-  }
-
-  const isAudio = quality === 'mp3';
-  const height = quality.replace('p', '');
-  const filename = isAudio ? 'audio.mp3' : \`video_\${quality}.mp4\`;
-
-  res.setHeader('Content-Disposition', \`attachment; filename="\${filename}"\`);
-  res.setHeader('Content-Type', isAudio ? 'audio/mpeg' : 'video/mp4');
-
-  const args = isAudio
-    ? ['-x', '--audio-format', 'mp3', '-o', '-', url]
-    : ['-f', \`bestvideo[height<=\${height}][ext=mp4]+bestaudio[ext=m4a]/best[height<=\${height}][ext=mp4]/best\`, '--merge-output-format', 'mp4', '-o', '-', url];
-
-  const ytdlp = spawn('yt-dlp', args);
-  ytdlp.stdout.pipe(res);
-  ytdlp.stderr.on('data', (d) => console.error(d.toString()));
-  req.on('close', () => ytdlp.kill());
-});
-
-const PORT = process.env.PORT || 3000;
-app.listen(PORT, () => console.log(\`StreamFetch siap di port \${PORT}\`));`,
-      pkg: `{
-  "name": "streamfetch-downloader",
-  "version": "1.0.0",
-  "main": "server.js",
-  "scripts": {
-    "start": "node server.js"
-  },
-  "dependencies": {
-    "cors": "^2.8.5",
-    "express": "^4.19.2"
-  }
-}`,
-      docker: `# Siap deploy ke Railway / Render / Fly.io / VPS
-FROM node:20-slim
-RUN apt-get update && apt-get install -y python3 ffmpeg curl \\
-    && curl -L https://github.com/yt-dlp/yt-dlp/releases/latest/download/yt-dlp -o /usr/local/bin/yt-dlp \\
-    && chmod a+rx /usr/local/bin/yt-dlp \\
-    && apt-get clean
-WORKDIR /app
-COPY package*.json ./
-RUN npm install --production
-COPY . .
-EXPOSE 3000
-CMD ["npm", "start"]`
-    };
-
-    let currentTab = 'server';
-    function switchDeployTab(tab) {
-      currentTab = tab;
-      deployCodeBlock.textContent = DEPLOY_SNIPPETS[tab];
-      [tabServerBtn, tabPkgBtn, tabDockerBtn].forEach(btn => {
-        btn.className = 'px-2.5 py-1 rounded-lg text-slate-400 hover:text-white font-mono text-xs cursor-pointer';
-      });
-      const activeBtn = tab === 'server' ? tabServerBtn : tab === 'pkg' ? tabPkgBtn : tabDockerBtn;
-      activeBtn.className = 'px-2.5 py-1 rounded-lg bg-amber-500/20 text-amber-300 font-mono text-xs font-bold cursor-pointer';
-    }
-    switchDeployTab('server');
-
-    tabServerBtn.addEventListener('click', () => switchDeployTab('server'));
-    tabPkgBtn.addEventListener('click', () => switchDeployTab('pkg'));
-    tabDockerBtn.addEventListener('click', () => switchDeployTab('docker'));
-
-    copyCodeBtn.addEventListener('click', () => {
-      const textarea = document.createElement('textarea');
-      textarea.value = DEPLOY_SNIPPETS[currentTab];
-      document.body.appendChild(textarea);
-      textarea.select();
-      document.execCommand('copy');
-      document.body.removeChild(textarea);
-      copyCodeBtn.textContent = '✓ Tersalin!';
-      setTimeout(() => { copyCodeBtn.textContent = 'Salin Kode'; }, 1800);
-    });
-
-    // Auto-detect same-origin or custom backend health
-    async function checkBackendHealth() {
-      const base = backendEndpoint.trim() ? backendEndpoint.trim().replace(/\/download\/?$/, '') : '/api';
+    async function checkServerAndCookies() {
       try {
-        const res = await fetch(`${base}/health`, { signal: AbortSignal.timeout(2500) });
-        isBackendAlive = res.ok;
+        const res = await fetch('/api/health');
+        const data = await res.json();
+        if (data.cookies && data.cookies.found && data.cookies.valid) {
+          cookieBadge.className = 'inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-bold bg-emerald-50 text-emerald-700 border border-emerald-200';
+          cookieBadge.innerHTML = '<span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span> Secret YT Aktif ✅';
+        } else if (data.cookies && data.cookies.found) {
+          cookieBadge.className = 'inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-bold bg-amber-50 text-amber-700 border border-amber-200';
+          cookieBadge.innerHTML = '⚠️ Cookies YT Kosong/Tidak Valid';
+        } else {
+          cookieBadge.className = 'inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-bold bg-red-50 text-red-700 border border-red-200';
+          cookieBadge.innerHTML = '❌ Secret cookies.txt Belum Terbaca';
+        }
       } catch {
-        isBackendAlive = Boolean(backendEndpoint.trim());
+        cookieBadge.textContent = 'Menghubungkan Server...';
       }
     }
-    checkBackendHealth();
+    checkServerAndCookies();
 
-    // Extract YouTube Video ID from various URL formats
-    function extractYouTubeId(url) {
-      const regExp = /(?:youtube\.com\/(?:[^\/]+\/.+\/|(?:v|e(?:mbed)?|shorts)\/|.*[?&]v=)|youtu\.be\/)([^"&?\/\s]{11})/i;
-      const match = url.match(regExp);
-      return match ? match[1] : null;
-    }
-
-    // Show inline status alert (replaces browser alert())
-    function showAlert(message, type = 'info') {
-      const styles = {
-        error: 'bg-red-950/60 border-red-500/40 text-red-200',
-        success: 'bg-emerald-950/60 border-emerald-500/40 text-emerald-200',
-        info: 'bg-slate-900 border-slate-700 text-slate-200'
-      };
-      alertBox.className = `mb-6 rounded-xl p-4 border text-sm flex items-start gap-3 ${styles[type] || styles.info}`;
-      alertBox.innerHTML = `
-        <span class="font-bold shrink-0">${type === 'error' ? '⚠️' : type === 'success' ? '✅' : 'ℹ️'}</span>
-        <div class="flex-1">${message}</div>
-      `;
-      alertBox.classList.remove('hidden');
-    }
-
-    function hideAlert() {
-      alertBox.classList.add('hidden');
-    }
-
-    // Render available formats
-    function renderFormats(videoId, title) {
-      const formats = [
-        { id: '1080p', label: '1080p Full HD', ext: 'MP4', codec: 'H.264 + AAC', badge: 'Terbaik', badgeColor: 'bg-emerald-500/15 text-emerald-400 border-emerald-500/30' },
-        { id: '720p', label: '720p HD', ext: 'MP4', codec: 'H.264 + AAC', badge: 'Standar', badgeColor: 'bg-sky-500/15 text-sky-400 border-sky-500/30' },
-        { id: '480p', label: '480p SD', ext: 'MP4', codec: 'H.264 + AAC', badge: 'Hemat Kuota', badgeColor: 'bg-slate-800 text-slate-300 border-slate-700' },
-        { id: 'mp3', label: 'Audio 320kbps', ext: 'MP3', codec: 'Audio Only', badge: 'Musik', badgeColor: 'bg-purple-500/15 text-purple-400 border-purple-500/30' }
-      ];
-
-      formatList.innerHTML = formats.map(f => `
-        <div class="flex items-center justify-between gap-3 p-3.5 rounded-xl bg-slate-900/90 border border-slate-800 hover:border-slate-700 transition">
-          <div class="flex items-center gap-3">
-            <span class="px-2.5 py-1 rounded-lg bg-slate-950 border border-slate-800 font-mono text-xs font-bold text-white">
-              ${f.ext}
-            </span>
-            <div>
-              <div class="flex items-center gap-2">
-                <span class="font-semibold text-sm text-white">${f.label}</span>
-                <span class="text-[10px] font-semibold px-2 py-0.5 rounded-full border ${f.badgeColor}">${f.badge}</span>
-              </div>
-              <div class="text-xs text-slate-500">${f.codec}</div>
-            </div>
-          </div>
-
-          <button
-            type="button"
-            onclick="handleDownload('${videoId}', '${f.id}', '${f.ext}')"
-            class="px-4 py-2 rounded-xl bg-slate-800 hover:bg-red-600 text-white text-xs font-bold transition flex items-center gap-1.5 cursor-pointer shrink-0"
-          >
-            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2.4" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" d="M4 16v2a2 2 0 002 2h12a2 2 0 002-2v-2M7 10l5 5 5-5M12 15V3" />
-            </svg>
-            <span>Unduh</span>
-          </button>
-        </div>
-      `).join('');
-    }
-
-    // Trigger Download (auto-routes to same-origin /api/download when hosted or configured endpoint)
-    window.handleDownload = function(videoId, quality, ext) {
-      const cleanEndpoint = backendEndpoint.trim();
-      const targetEndpoint = cleanEndpoint || (isBackendAlive ? '/api/download' : '');
-
-      if (targetEndpoint) {
-        const separator = targetEndpoint.includes('?') ? '&' : '?';
-        const targetUrl = `${targetEndpoint}${separator}url=${encodeURIComponent('https://www.youtube.com/watch?v=' + videoId)}&quality=${encodeURIComponent(quality)}`;
-        showAlert(`Memulai unduhan <strong>${quality} (${ext})</strong> dari server...`, 'success');
-        window.open(targetUrl, '_blank', 'noopener,noreferrer');
+    function showStatus(msg, type = 'info') {
+      statusBox.className = 'rounded-2xl p-4 text-sm font-bold border-2 whitespace-pre-line ';
+      if (type === 'error') {
+        statusBox.className += 'bg-red-50 text-red-700 border-red-200';
+      } else if (type === 'success') {
+        statusBox.className += 'bg-emerald-50 text-emerald-700 border-emerald-200';
       } else {
-        showAlert(
-          `<strong>Siap Hosting:</strong> Simpan halaman ini sebagai <code>public/index.html</code> bersama <code>server.js</code>, <code>package.json</code>, dan <code>Dockerfile</code> di panel <strong>"Setup Backend"</strong> di bawah lalu deploy ke Railway / Render / VPS Anda.`,
-          'info'
-        );
-        backendGuide.classList.remove('hidden');
-        backendGuide.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+        statusBox.className += 'bg-sky-50 text-sky-700 border-sky-200';
       }
-    };
+      statusBox.textContent = msg;
+    }
 
-    // Fetch Metadata via official YouTube oEmbed endpoint
-    async function processYouTubeUrl(rawUrl) {
-      hideAlert();
-      const videoId = extractYouTubeId(rawUrl);
-
-      if (!videoId) {
-        showAlert('Tautan YouTube tidak valid. Pastikan format URL seperti <code>https://www.youtube.com/watch?v=...</code> atau <code>https://youtu.be/...</code>.', 'error');
-        return;
-      }
-
-      resultCard.classList.add('hidden');
-      loadingCard.classList.remove('hidden');
-
-      const canonicalUrl = `https://www.youtube.com/watch?v=${videoId}`;
-      const oembedUrl = `https://www.youtube.com/oembed?url=${encodeURIComponent(canonicalUrl)}&format=json`;
-
-      try {
-        const response = await fetch(oembedUrl);
-        if (!response.ok) throw new Error('Video tidak ditemukan atau bersifat privat.');
-        const data = await response.json();
-
-        currentVideoData = {
-          id: videoId,
-          title: data.title || 'YouTube Video',
-          author: data.author_name || 'YouTube Creator',
-          thumbnail: `https://i.ytimg.com/vi/${videoId}/hqdefault.jpg`,
-          url: canonicalUrl
-        };
-
-        // Update UI
-        videoThumb.src = currentVideoData.thumbnail;
-        videoTitle.textContent = currentVideoData.title;
-        videoAuthor.textContent = `Channel: ${currentVideoData.author}`;
-        videoIdLabel.textContent = `ID: ${videoId}`;
-        openOriginalLink.href = canonicalUrl;
-
-        renderFormats(videoId, currentVideoData.title);
-        saveToHistory(currentVideoData);
-
-        loadingCard.classList.add('hidden');
-        resultCard.classList.remove('hidden');
-      } catch (err) {
-        loadingCard.classList.add('hidden');
-        showAlert(`Gagal mengambil informasi video: ${err.message}`, 'error');
+    function updateTrimUI() {
+      if (enableTrim.checked) {
+        trimFields.classList.remove('hidden');
+        trimFields.classList.add('grid');
+      } else {
+        trimFields.classList.add('hidden');
+        trimFields.classList.remove('grid');
       }
     }
 
-    // History Management
-    function saveToHistory(item) {
-      searchHistory = [item, ...searchHistory.filter(h => h.id !== item.id)].slice(0, 4);
-      localStorage.setItem('sf_history', JSON.stringify(searchHistory));
-      renderHistory();
-    }
-
-    function renderHistory() {
-      if (!searchHistory.length) {
-        historySection.classList.add('hidden');
-        return;
+    trimToggleHeader.addEventListener('click', (e) => {
+      if (e.target !== enableTrim) {
+        enableTrim.checked = !enableTrim.checked;
       }
-      historySection.classList.remove('hidden');
-      historyList.innerHTML = searchHistory.map(item => `
-        <button
-          type="button"
-          onclick="loadFromHistory('${item.url}')"
-          class="flex items-center gap-3 p-2.5 rounded-xl bg-slate-900/80 hover:bg-slate-800/90 border border-slate-800 text-left transition cursor-pointer"
-        >
-          <img
-            src="${item.thumbnail}"
-            alt=""
-            onerror="this.src='https://placehold.co/160x90/1e293b/94a3b8?text=YT'"
-            class="w-20 aspect-video object-cover rounded-lg shrink-0 bg-slate-950"
-          />
-          <div class="min-w-0 flex-1">
-            <div class="text-xs font-semibold text-white truncate">${item.title}</div>
-            <div class="text-[11px] text-slate-400 truncate mt-0.5">${item.author}</div>
-          </div>
-        </button>
-      `).join('');
-    }
-
-    window.loadFromHistory = function(url) {
-      urlInput.value = url;
-      processYouTubeUrl(url);
-    };
-
-    // Event Listeners
-    fetchForm.addEventListener('submit', (e) => {
-      e.preventDefault();
-      processYouTubeUrl(urlInput.value.trim());
+      updateTrimUI();
     });
 
     pasteBtn.addEventListener('click', async () => {
       try {
         const text = await navigator.clipboard.readText();
         if (text) {
-          urlInput.value = text;
-          processYouTubeUrl(text.trim());
+          urlInput.value = text.trim();
+          fetchMediaInfo();
         }
       } catch {
         urlInput.focus();
-        showAlert('Izin clipboard dibatasi browser. Silakan tekan Ctrl+V / Tempel secara manual di kolom input.', 'info');
+        showStatus('Silakan tekan Ctrl+V (atau tahan lalu Tempel) langsung di kolom link.', 'info');
       }
     });
 
-    sampleBtn.addEventListener('click', () => {
-      const demoUrl = 'https://www.youtube.com/watch?v=aqz-KE-bpKQ';
-      urlInput.value = demoUrl;
-      processYouTubeUrl(demoUrl);
+    checkBtn.addEventListener('click', fetchMediaInfo);
+    urlInput.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter') {
+        e.preventDefault();
+        fetchMediaInfo();
+      }
     });
 
-    toggleGuideBtn.addEventListener('click', () => {
-      backendGuide.classList.toggle('hidden');
+    async function fetchMediaInfo() {
+      const url = urlInput.value.trim();
+      if (!url) {
+        showStatus('Masukkan tautan YouTube, TikTok, atau Instagram terlebih dahulu ya.', 'error');
+        return;
+      }
+
+      checkBtn.disabled = true;
+      checkBtn.innerHTML = '<span>Memeriksa...</span>';
+      showStatus('⏳ Mengambil informasi video...', 'info');
+
+      try {
+        const res = await fetch(`/api/info?url=${encodeURIComponent(url)}`);
+        const data = await res.json();
+
+        document.getElementById('videoTitle').textContent = data.title || 'Video Siap Diunduh';
+        document.getElementById('videoAuthor').textContent = `Oleh: ${data.uploader || 'Kreator'}`;
+        document.getElementById('platformBadge').textContent = data.platform || 'Media';
+        document.getElementById('durationBadge').textContent = data.duration || 'Siap Unduh';
+        document.getElementById('thumbImg').src =
+          data.thumbnail || 'https://placehold.co/400x250/FEF3C7/D97706?text=Sayangku+Gihan';
+
+        statusBox.classList.add('hidden');
+        resultCard.classList.remove('hidden');
+      } catch (err) {
+        document.getElementById('videoTitle').textContent = 'Media Siap Diproses';
+        document.getElementById('videoAuthor').textContent = url;
+        document.getElementById('platformBadge').textContent = 'Media';
+        document.getElementById('durationBadge').textContent = 'Siap Unduh';
+        document.getElementById('thumbImg').src = 'https://placehold.co/400x250/E0F2FE/0284C7?text=Sayangku+Gihan';
+        statusBox.classList.add('hidden');
+        resultCard.classList.remove('hidden');
+      } finally {
+        checkBtn.disabled = false;
+        checkBtn.innerHTML = `<svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" /></svg><span>Cek Video</span>`;
+      }
+    }
+
+    document.querySelectorAll('.dl-btn').forEach((btn) => {
+      btn.addEventListener('click', () => {
+        const quality = btn.getAttribute('data-quality');
+        startDownload(quality);
+      });
     });
 
-    closeGuideBtn.addEventListener('click', () => {
-      backendGuide.classList.add('hidden');
+    // Tangkap pesan error jika iframe gagal mengunduh (agar muncul rapi di kotak status, bukan pindah halaman)
+    hiddenFrame.addEventListener('load', () => {
+      try {
+        const doc = hiddenFrame.contentDocument || hiddenFrame.contentWindow.document;
+        if (doc && doc.body && doc.body.innerText.trim().length > 0) {
+          const errText = doc.body.innerText.trim();
+          if (errText.includes('502') || errText.includes('Bad Gateway')) {
+            showStatus('⚠️ Server gratis Render sedang penuh memorinya (502). Coba pilih kualitas 720p/480p atau tunggu 10 detik lalu klik lagi.', 'error');
+          } else {
+            showStatus(`❌ ${errText}`, 'error');
+          }
+        }
+      } catch (_) {}
     });
 
-    saveEndpointBtn.addEventListener('click', () => {
-      backendEndpoint = backendEndpointInput.value.trim();
-      localStorage.setItem('sf_backend_endpoint', backendEndpoint);
-      showAlert(
-        backendEndpoint
-          ? `Endpoint backend berhasil disimpan: <code>${backendEndpoint}</code>`
-          : 'Endpoint backend dikosongkan (kembali ke Mode Pratinjau UI).',
-        'success'
+    function startDownload(quality) {
+      const url = urlInput.value.trim();
+      if (!url) {
+        showStatus('Tempel tautan videonya terlebih dahulu ya.', 'error');
+        return;
+      }
+
+      const useTrim = enableTrim.checked;
+      const startTime = useTrim ? document.getElementById('startTime').value.trim() : '';
+      const endTime = useTrim ? document.getElementById('endTime').value.trim() : '';
+
+      const params = new URLSearchParams({ url, quality });
+      if (startTime) params.append('startTime', startTime);
+      if (endTime) params.append('endTime', endTime);
+
+      showStatus(
+        `⏳ Server Sayangku Gihan sedang menyiapkan file ${quality.toUpperCase()}...\nMohon tunggu sekitar 15–40 detik (jangan tutup halaman ini), file akan otomatis terunduh ke perangkat kamu begitu selesai.`,
+        'info'
       );
-    });
 
-    clearHistoryBtn.addEventListener('click', () => {
-      searchHistory = [];
-      localStorage.removeItem('sf_history');
-      renderHistory();
-    });
-
-    // Initialize history on load
-    renderHistory();
+      hiddenFrame.src = `/api/download?${params.toString()}`;
+    }
   </script>
 </body>
 </html>
