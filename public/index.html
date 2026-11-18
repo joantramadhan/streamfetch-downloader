@@ -161,20 +161,20 @@
         <div class="space-y-2.5">
           <p class="text-xs font-extrabold text-slate-600 uppercase tracking-wider">Pilih Format & Kualitas Unduhan:</p>
           <div class="grid grid-cols-2 sm:grid-cols-4 gap-2.5">
-            <button type="button" data-quality="1080p" class="dl-btn p-3 rounded-2xl bg-white hover:bg-sky-50 border-2 border-slate-200 hover:border-sky-400 text-left transition group">
+            <button type="button" data-quality="1080p" class="dl-btn p-3 rounded-2xl bg-white hover:bg-sky-50 border-2 border-slate-200 hover:border-sky-400 text-left transition group cursor-pointer">
               <div class="text-sm font-black text-slate-800 group-hover:text-sky-700">1080p HD</div>
               <div class="text-[11px] font-bold text-slate-400">MP4 Tajam</div>
             </button>
-            <button type="button" data-quality="720p" class="dl-btn p-3 rounded-2xl bg-white hover:bg-sky-50 border-2 border-sky-300 text-left transition group relative">
+            <button type="button" data-quality="720p" class="dl-btn p-3 rounded-2xl bg-white hover:bg-sky-50 border-2 border-sky-300 text-left transition group relative cursor-pointer">
               <span class="absolute -top-2 right-2 px-2 py-0.5 bg-amber-400 text-amber-950 text-[10px] font-black rounded-full">Rekomendasi</span>
               <div class="text-sm font-black text-sky-700">720p HD</div>
               <div class="text-[11px] font-bold text-slate-400">MP4 Seimbang</div>
             </button>
-            <button type="button" data-quality="480p" class="dl-btn p-3 rounded-2xl bg-white hover:bg-sky-50 border-2 border-slate-200 hover:border-sky-400 text-left transition group">
+            <button type="button" data-quality="480p" class="dl-btn p-3 rounded-2xl bg-white hover:bg-sky-50 border-2 border-slate-200 hover:border-sky-400 text-left transition group cursor-pointer">
               <div class="text-sm font-black text-slate-800 group-hover:text-sky-700">480p SD</div>
               <div class="text-[11px] font-bold text-slate-400">MP4 Hemat Kuota</div>
             </button>
-            <button type="button" data-quality="mp3" class="dl-btn p-3 rounded-2xl bg-white hover:bg-orange-50 border-2 border-slate-200 hover:border-orange-400 text-left transition group">
+            <button type="button" data-quality="mp3" class="dl-btn p-3 rounded-2xl bg-white hover:bg-orange-50 border-2 border-slate-200 hover:border-orange-400 text-left transition group cursor-pointer">
               <div class="text-sm font-black text-orange-600">Audio MP3</div>
               <div class="text-[11px] font-bold text-slate-400">Suara Jernih</div>
             </button>
@@ -219,7 +219,7 @@
     const trimToggleHeader = document.getElementById('trimToggleHeader');
     const cookieBadge = document.getElementById('cookieBadge');
 
-    // 1. Cek apakah Secret File cookies.txt di Render terbaca dan aktif
+    // 1. Cek status server & Secret File cookies.txt di Render
     async function checkServerAndCookies() {
       try {
         const res = await fetch('/api/health');
@@ -235,7 +235,7 @@
           cookieBadge.innerHTML = '❌ Secret cookies.txt Belum Terbaca';
         }
       } catch {
-        cookieBadge.textContent = 'Mode Offline / Server Tidur';
+        cookieBadge.textContent = 'Menghubungkan Server...';
       }
     }
     checkServerAndCookies();
@@ -335,7 +335,8 @@
       });
     });
 
-    async function startDownload(quality) {
+    // Unduh langsung melalui navigasi browser agar hemat memori & bebas error 502 fetch
+    function startDownload(quality) {
       const url = urlInput.value.trim();
       if (!url) {
         showStatus('Tempel tautan videonya terlebih dahulu ya.', 'error');
@@ -351,31 +352,11 @@
       if (endTime) params.append('endTime', endTime);
 
       showStatus(
-        `⏳ Server <b>Sayangku Gihan</b> sedang menyiapkan file <b>${quality.toUpperCase()}</b> menggunakan Secret YT...\nMohon tunggu sekitar 10–30 detik hingga penggabungan video & suara selesai.`,
+        `⏳ Server <b>Sayangku Gihan</b> sedang menyiapkan file <b>${quality.toUpperCase()}</b>...\nMohon tunggu sekitar 10–30 detik (jangan tutup tab ini), unduhan akan otomatis masuk ke daftar Download browser kamu.`,
         'info'
       );
 
-      try {
-        const response = await fetch(`/api/download?${params.toString()}`);
-        if (!response.ok) {
-          const errText = await response.text();
-          throw new Error(errText || 'Gagal mengunduh media.');
-        }
-
-        const blob = await response.blob();
-        const downloadUrl = window.URL.createObjectURL(blob);
-        const a = document.createElement('a');
-        a.href = downloadUrl;
-        a.download = quality === 'mp3' ? 'SayangkuGihan_Audio.mp3' : `SayangkuGihan_${quality}.mp4`;
-        document.body.appendChild(a);
-        a.click();
-        a.remove();
-        window.URL.revokeObjectURL(downloadUrl);
-
-        showStatus(`✅ Berhasil! File <b>${quality.toUpperCase()}</b> sudah tersimpan ke perangkatmu.`, 'success');
-      } catch (err) {
-        showStatus(`❌ ${err.message}`, 'error');
-      }
+      window.location.href = `/api/download?${params.toString()}`;
     }
   </script>
 </body>
